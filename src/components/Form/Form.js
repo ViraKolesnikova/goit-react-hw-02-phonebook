@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import shortid from 'shortid';
+import PropTypes from 'prop-types';
 
 import s from './Form.module.css';
 
@@ -7,20 +8,27 @@ export default class Form extends Component {
   nameID = shortid.generate();
   numberID = shortid.generate();
 
-  state = {
+  static propTypes = {
+    addContact: PropTypes.func.isRequired,
+    contacts: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        name: PropTypes.string.isRequired,
+        number: PropTypes.string.isRequired,
+      }),
+    ).isRequired,
+  };
+
+  initialState = {
     name: '',
     number: '',
   };
 
+  state = this.initialState;
+
   updateState = event => {
-    let { name, value } = event.target;
-    this.props.contacts.forEach(contact => {
-      if (contact.name === value) {
-        alert(`${value} is already in your contacts!`);
-        this.reset();
-      }
-      this.setState({ [name]: value });
-    });
+    const { name, value } = event.target;
+    this.setState({ [name]: value });
   };
 
   onSubmitAddContact = event => {
@@ -32,16 +40,33 @@ export default class Form extends Component {
       name,
       number,
     };
-    this.props.addContact(newContact);
-    this.reset();
+    if (this.checkContactIdentity() === undefined) {
+      this.props.addContact(newContact);
+      this.reset();
+    } else {
+      this.alertIdentity(name);
+    }
   };
 
   reset = () => {
-    console.log('RESET!!!');
-    this.setState({ name: '', number: '' });
+    this.setState(this.initialState);
+  };
+
+  checkContactIdentity = () => {
+    const identity = this.props.contacts.find(
+      contact => contact.name === this.state.name,
+    );
+    return identity;
+  };
+
+  alertIdentity = name => {
+    alert(`${name} is already in your contacts!`);
+    this.reset();
   };
 
   render() {
+    const { name, number } = this.state;
+
     return (
       <form className={s.form} onSubmit={this.onSubmitAddContact}>
         <label className={s.label} htmlFor={this.nameID}>
@@ -52,6 +77,7 @@ export default class Form extends Component {
           className={s.input}
           type="text"
           name="name"
+          value={name}
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
@@ -65,6 +91,7 @@ export default class Form extends Component {
           className={s.input}
           type="tel"
           name="number"
+          value={number}
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required

@@ -22,23 +22,29 @@ class App extends Component {
   updateFilter = event => {
     const filterValue = event.target.value;
     this.setState({ filter: filterValue });
-    this.findContactByFilter(filterValue);
   };
 
   resetFilter = event => {
-    event.target.value = '';
     this.setState({ filter: '' });
   };
 
-  findContactByFilter = value => {
-    const filteredContacts = this.state.contacts.filter(contact =>
-      contact.name.toLowerCase().includes(value),
+  findContactsByFilter = () => {
+    const { contacts, filter } = this.state;
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase()),
     );
-    this.setState(prevState => ({ contacts: filteredContacts }));
+  };
+
+  deleteContact = contactId => {
+    this.setState(prevState => ({
+      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
+    }));
   };
 
   render() {
-    const { contacts } = this.state;
+    const { filter } = this.state;
+    const filteredContacts = this.findContactsByFilter();
+
     return (
       <>
         <h1>Phonebook</h1>
@@ -51,8 +57,12 @@ class App extends Component {
         <Filter
           onFilterInputEnter={this.updateFilter}
           onFilterOut={this.resetFilter}
+          filterValue={filter}
         />
-        <ContactList contactsData={contacts} />
+        <ContactList
+          contactsData={filteredContacts}
+          onDeleteBtn={this.deleteContact}
+        />
       </>
     );
   }
