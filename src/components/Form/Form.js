@@ -54,7 +54,7 @@ export default class Form extends Component {
 
   checkContactIdentity = () => {
     const identity = this.props.contacts.find(
-      contact => contact.name === this.state.name,
+      contact => contact.name.toLowerCase() === this.state.name.toLowerCase(),
     );
     return identity;
   };
